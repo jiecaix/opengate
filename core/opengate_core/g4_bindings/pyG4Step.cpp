@@ -20,6 +20,7 @@ void init_G4Step(py::module &m) {
       .def("GetPostStepPoint", &G4Step::GetPostStepPoint,
            py::return_value_policy::reference)
       .def("GetTrack", &G4Step::GetTrack, py::return_value_policy::reference)
+      .def("GetStepLength", &G4Step::GetStepLength)
 
       /*
        * TODO

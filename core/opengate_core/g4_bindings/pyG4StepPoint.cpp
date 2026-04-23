@@ -20,5 +20,7 @@ void init_G4StepPoint(py::module &m) {
       .def("GetPhysicalVolume", &G4StepPoint::GetPhysicalVolume,
            py::return_value_policy::reference)
       .def("GetTouchable", &G4StepPoint::GetTouchable,
+           py::return_value_policy::reference)
+      .def("GetMaterial", &G4StepPoint::GetMaterial,
            py::return_value_policy::reference);
 }

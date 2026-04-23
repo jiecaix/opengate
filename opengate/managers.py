@@ -97,6 +97,7 @@ from .actors.miscactors import (
     KillAccordingProcessesActor,
     AttenuationImageActor,
 )
+from .actors.phaseactors import PhaseIntegralActor
 from .actors.biasingactors import (
     GenericBiasingActorBase,
     BremsstrahlungSplittingActor,
@@ -162,6 +163,8 @@ actor_types = {
     "BremsstrahlungSplittingActor": BremsstrahlungSplittingActor,
     "GammaFreeFlightActor": GammaFreeFlightActor,
     "ScatterSplittingFreeFlightActor": ScatterSplittingFreeFlightActor,
+    # phase contrast
+    "PhaseIntegralActor": PhaseIntegralActor,
 }
 
 
