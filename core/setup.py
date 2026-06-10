@@ -105,6 +105,12 @@ class CMakeBuild(build_ext):
 
         env = os.environ.copy()
 
+        # Remove /usr/include from CPATH to avoid conflicts with system Qt headers
+        if "CPATH" in env:
+            cpath_parts = env["CPATH"].split(os.pathsep)
+            cpath_parts = [p for p in cpath_parts if p != "/usr/include"]
+            env["CPATH"] = os.pathsep.join(cpath_parts)
+
         env["CXXFLAGS"] = '{} -DVERSION_INFO=\\"{}\\"'.format(
             env.get("CXXFLAGS", ""), self.distribution.get_version()
         )
@@ -156,6 +162,7 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ["cmake", "--build", ".", "--target", ext.name] + build_args,
             cwd=cmake_dir,
+            env=env,
         )
 
 
