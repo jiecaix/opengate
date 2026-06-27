@@ -1,22 +1,22 @@
-#include "PhysicsXrayRefraction.h"
+#include "GateXrayRefractionPhysics.h"
 
-#include "XrayRefraction.h"
+#include "GateXrayRefraction.h"
 
 #include <G4Gamma.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4ProcessManager.hh>
 
-PhysicsXrayRefraction::PhysicsXrayRefraction(G4int verbose)
-    : G4VPhysicsConstructor("PhysicsXrayRefraction") {
+GateXrayRefractionPhysics::GateXrayRefractionPhysics(G4int verbose)
+    : G4VPhysicsConstructor("GateXrayRefractionPhysics") {
   SetVerboseLevel(verbose);
 }
 
-void PhysicsXrayRefraction::ConstructParticle() {
+void GateXrayRefractionPhysics::ConstructParticle() {
   G4Gamma::GammaDefinition();
 }
 
-void PhysicsXrayRefraction::ConstructProcess() {
+void GateXrayRefractionPhysics::ConstructProcess() {
   auto *particleTable = G4ParticleTable::GetParticleTable();
   auto *particleIterator = particleTable->GetIterator();
 
@@ -28,6 +28,6 @@ void PhysicsXrayRefraction::ConstructProcess() {
     }
 
     auto *processManager = particle->GetProcessManager();
-    processManager->AddDiscreteProcess(new XrayRefraction("XrayRefraction"));
+    processManager->AddDiscreteProcess(new GateXrayRefraction("GateXrayRefraction"));
   }
 }

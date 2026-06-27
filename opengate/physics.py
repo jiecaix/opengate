@@ -354,15 +354,20 @@ class PhysicsListBuilder(GateObject):
         _build_available_reference_physics_list_names()
     )
 
-    special_physics_constructor_classes = {
+    replacement_special_physics_constructor_classes = {
         "G4DecayPhysics": g4.G4DecayPhysics,
         "G4RadioactiveDecayPhysics": g4.G4RadioactiveDecayPhysics,
         "G4OpticalPhysics": g4.G4OpticalPhysics,
     }
-    if hasattr(g4, "PhysicsXrayRefraction"):
-        special_physics_constructor_classes["PhysicsXrayRefraction"] = (
-            g4.PhysicsXrayRefraction
+    additive_special_physics_constructor_classes = {}
+    if hasattr(g4, "GateXrayRefractionPhysics"):
+        additive_special_physics_constructor_classes["GateXrayRefractionPhysics"] = (
+            g4.GateXrayRefractionPhysics
         )
+    special_physics_constructor_classes = {
+        **replacement_special_physics_constructor_classes,
+        **additive_special_physics_constructor_classes,
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -425,7 +430,7 @@ class PhysicsListBuilder(GateObject):
                     constructor = self.special_physics_constructor_classes[spc](
                         self.physics_manager.simulation.g4_verbose_level
                     )
-                    if spc == "PhysicsXrayRefraction":
+                    if spc in self.additive_special_physics_constructor_classes:
                         physics_list.RegisterPhysics(constructor)
                     else:
                         physics_list.ReplacePhysics(constructor)

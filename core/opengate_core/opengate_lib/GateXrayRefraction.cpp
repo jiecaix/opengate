@@ -5,7 +5,7 @@
    See LICENSE.md for further details
    -------------------------------------------------- */
 
-#include "XrayRefraction.h"
+#include "GateXrayRefraction.h"
 
 #include <G4GeometryTolerance.hh>
 #include <G4MaterialPropertiesTable.hh>
@@ -18,22 +18,22 @@
 #include <cfloat>
 #include <cmath>
 
-XrayRefraction::XrayRefraction(const G4String &processName)
-    : G4VDiscreteProcess(processName, fOptical) {
+GateXrayRefraction::GateXrayRefraction(const G4String &processName)
+    : G4VDiscreteProcess(processName, fNotDefined) {
   mCarTolerance = G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
 }
 
-G4bool XrayRefraction::IsApplicable(const G4ParticleDefinition &particle) {
+G4bool GateXrayRefraction::IsApplicable(const G4ParticleDefinition &particle) {
   return &particle == G4Gamma::Gamma();
 }
 
-G4double XrayRefraction::GetMeanFreePath(const G4Track &, G4double,
+G4double GateXrayRefraction::GetMeanFreePath(const G4Track &, G4double,
                                          G4ForceCondition *condition) {
   *condition = Forced;
   return DBL_MAX;
 }
 
-G4VParticleChange *XrayRefraction::PostStepDoIt(const G4Track &track,
+G4VParticleChange *GateXrayRefraction::PostStepDoIt(const G4Track &track,
                                                 const G4Step &step) {
   aParticleChange.Initialize(track);
 
@@ -88,7 +88,7 @@ G4VParticleChange *XrayRefraction::PostStepDoIt(const G4Track &track,
   return G4VDiscreteProcess::PostStepDoIt(track, step);
 }
 
-G4double XrayRefraction::GetMaterialRIndex(G4Material *material,
+G4double GateXrayRefraction::GetMaterialRIndex(G4Material *material,
                                            G4double momentum) const {
   if (material == nullptr) {
     return 1.0;
@@ -108,7 +108,7 @@ G4double XrayRefraction::GetMaterialRIndex(G4Material *material,
   return rindex->GetValue(momentum, isOutOfRange);
 }
 
-G4ThreeVector XrayRefraction::ApplySnellLaw(
+G4ThreeVector GateXrayRefraction::ApplySnellLaw(
     const G4ThreeVector &oldMomentum, const G4ThreeVector &surfaceNormal,
     G4double rindex1, G4double rindex2) const {
   const G4double pDotN = oldMomentum * surfaceNormal;

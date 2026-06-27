@@ -15,10 +15,10 @@
 #include <G4VDiscreteProcess.hh>
 #include <globals.hh>
 
-class XrayRefraction : public G4VDiscreteProcess {
+class GateXrayRefraction : public G4VDiscreteProcess {
 public:
-  explicit XrayRefraction(const G4String &processName = "XrayRefraction");
-  ~XrayRefraction() override = default;
+  explicit GateXrayRefraction(const G4String &processName = "GateXrayRefraction");
+  ~GateXrayRefraction() override = default;
 
   G4bool IsApplicable(const G4ParticleDefinition &particle) override;
   G4double GetMeanFreePath(const G4Track &track, G4double previousStepSize,
