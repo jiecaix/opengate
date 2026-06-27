@@ -127,11 +127,13 @@ class CMakeBuild(build_ext):
 
         print("Try to open config.json file")
         fn = "config.json"
-        sconfig = {"G4INSTALL": "", "ITKDIR": ""}
+        sconfig = {"G4INSTALL": "", "ITKDIR": "", "OPENGATE_USE_VISU": "OFF"}
         if "G4INSTALL" in env:
             sconfig["G4INSTALL"] = env["G4INSTALL"]
         if "ITKDIR" in env:
             sconfig["ITKDIR"] = env["ITKDIR"]
+        if "OPENGATE_USE_VISU" in env:
+            sconfig["OPENGATE_USE_VISU"] = env["OPENGATE_USE_VISU"]
         try:
             f = open(fn, "r")
             sconfig = json.load(f)
@@ -142,6 +144,7 @@ class CMakeBuild(build_ext):
 
         cmake_args += ["-DGeant4_DIR=" + sconfig["G4INSTALL"]]
         cmake_args += ["-DITK_DIR=" + sconfig["ITKDIR"]]
+        cmake_args += ["-DOPENGATE_USE_VISU=" + sconfig["OPENGATE_USE_VISU"]]
 
         print("CMAKE args", cmake_args)
         print()

@@ -17,8 +17,14 @@ set(CMAKE_CXX_STANDARD 17)
 # Enable Position Independent Code for all targets (-fPIC)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+option(OPENGATE_USE_VISU "Enable Geant4 Qt/OpenGL visualization support in opengate_core" OFF)
+
 # Need Geant4
-find_package(Geant4 REQUIRED OPTIONAL_COMPONENTS qt)
+if (OPENGATE_USE_VISU)
+    find_package(Geant4 REQUIRED OPTIONAL_COMPONENTS qt)
+else ()
+    find_package(Geant4 REQUIRED)
+endif ()
 include(${Geant4_USE_FILE})
 message(STATUS "OPENGATE - Geant4 version ${Geant4_VERSION}")
 
@@ -33,8 +39,10 @@ IF (Geant4_gdml_FOUND)
     add_definitions(-DUSE_GDML=1)
 ENDIF ()
 
-# QT in Geant4
-IF (Geant4_qt_FOUND OR Geant4_vis_opengl_x11_FOUND)
+# QT in Geant4. Conda Geant4 packages often expose visualization components
+# without all OpenGL/X11 development headers being present, so keep this off by
+# default for headless simulation builds.
+IF (OPENGATE_USE_VISU AND (Geant4_qt_FOUND OR Geant4_vis_opengl_x11_FOUND))
     message(STATUS "OPENGATE - Geant4 is compiled with QT")
     find_package(OpenGL QUIET)
     include_directories(${OPENGL_INCLUDE_DIR})
@@ -106,9 +114,16 @@ if (WIN32)
 endif ()
 
 # additional utilities
+foreach(itk_include_dir IN LISTS ITK_INCLUDE_DIRS)
+    if(EXISTS "${itk_include_dir}/vnl")
+        list(APPEND OPENGATE_ITK_COMPAT_INCLUDE_DIRS "${itk_include_dir}/vnl")
+    endif()
+endforeach()
+
 target_include_directories(opengate_core PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/external/
         ${CMAKE_CURRENT_SOURCE_DIR}/opengate_core/opengate_lib
+        ${OPENGATE_ITK_COMPAT_INCLUDE_DIRS}
         )
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
