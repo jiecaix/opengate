@@ -565,6 +565,7 @@ void init_GateVolumeVoxelizer(py::module &);
 void init_GateImageBox(py::module &m);
 
 void init_XrayRefraction(py::module &);
+void init_PhysicsXrayRefraction(py::module &);
 
 PYBIND11_MODULE(opengate_core, m) {
 
@@ -741,6 +742,7 @@ PYBIND11_MODULE(opengate_core, m) {
   init_G4StepLimiterPhysics(m);
   init_G4UserSpecialCuts(m);
   init_XrayRefraction(m);
+  init_PhysicsXrayRefraction(m);
 
   init_G4RadioactiveDecay(m); // must be after init_G4VRestDiscreteProcess
 

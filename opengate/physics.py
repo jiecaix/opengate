@@ -359,6 +359,10 @@ class PhysicsListBuilder(GateObject):
         "G4RadioactiveDecayPhysics": g4.G4RadioactiveDecayPhysics,
         "G4OpticalPhysics": g4.G4OpticalPhysics,
     }
+    if hasattr(g4, "PhysicsXrayRefraction"):
+        special_physics_constructor_classes["PhysicsXrayRefraction"] = (
+            g4.PhysicsXrayRefraction
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -418,11 +422,13 @@ class PhysicsListBuilder(GateObject):
         ) in self.simulation.physics_manager.special_physics_constructors.items():
             if switch is True:
                 try:
-                    physics_list.ReplacePhysics(
-                        self.special_physics_constructor_classes[spc](
-                            self.physics_manager.simulation.g4_verbose_level
-                        )
+                    constructor = self.special_physics_constructor_classes[spc](
+                        self.physics_manager.simulation.g4_verbose_level
                     )
+                    if spc == "PhysicsXrayRefraction":
+                        physics_list.RegisterPhysics(constructor)
+                    else:
+                        physics_list.ReplacePhysics(constructor)
                 except KeyError:
                     fatal(
                         f"Special physics constructor named '{spc}' not found. Available constructors are: {self.special_physics_constructor_classes.keys()}."
