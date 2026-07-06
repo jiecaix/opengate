@@ -566,6 +566,7 @@ void init_GateImageBox(py::module &m);
 
 void init_GateXrayRefraction(py::module &);
 void init_GateXrayRefractionPhysics(py::module &);
+void init_GateXrayPhaseIntegralActor(py::module &);
 
 PYBIND11_MODULE(opengate_core, m) {
 
@@ -869,4 +870,5 @@ PYBIND11_MODULE(opengate_core, m) {
   init_GateUniqueVolumeID(m);
   init_GateGeometryUtils(m);
   init_GateImageBox(m);
+  init_GateXrayPhaseIntegralActor(m);
 }

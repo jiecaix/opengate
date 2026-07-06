@@ -116,6 +116,7 @@ from .actors.miscactors import (
     SimulationStatisticsActor,
     DebugActor,
 )
+from .actors.phaseactors import XrayPhaseIntegralActor
 from .actors.pgactors import (
     VoxelizedPromptGammaAnalogActor,
     VoxelizedPromptGammaTLEActor,
@@ -190,6 +191,8 @@ actor_types = {
     "CoincidenceSorterActor": CoincidenceSorterActor,
     "DigiAttributeProcessDefinedStepInVolumeActor": DigiAttributeProcessDefinedStepInVolumeActor,
     "DigiAttributeLastProcessDefinedStepInVolumeActor": DigiAttributeLastProcessDefinedStepInVolumeActor,
+    # phase / wavefront scoring
+    "XrayPhaseIntegralActor": XrayPhaseIntegralActor,
     # biasing
     "BremsstrahlungSplittingActor": BremsstrahlungSplittingActor,
     "GammaFreeFlightActor": GammaFreeFlightActor,
