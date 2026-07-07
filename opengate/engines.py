@@ -812,6 +812,7 @@ class ActionEngine(g4.G4VUserActionInitialization, EngineBase):
         self.register_run_actions(actor)
         self.register_event_actions(actor)
         self.register_tracking_actions(actor)
+        self.register_stepping_actions(actor)
         self.register_stacking_actions(actor)
 
     def register_run_actions(self, actor):
@@ -825,6 +826,10 @@ class ActionEngine(g4.G4VUserActionInitialization, EngineBase):
     def register_tracking_actions(self, actor):
         for ta in self.g4_TrackingAction:
             ta.RegisterActor(actor)
+
+    def register_stepping_actions(self, actor):
+        for sa in self.g4_SteppingAction:
+            sa.RegisterActor(actor)
 
     def register_auxiliary_attribute_actions(self, attribute):
         # Auxiliary attributes are simulation-level runtime attributes, but the

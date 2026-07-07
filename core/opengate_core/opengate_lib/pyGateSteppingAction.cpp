@@ -14,6 +14,7 @@ void init_GateSteppingAction(py::module &m) {
              std::unique_ptr<GateSteppingAction, py::nodelete>>(
       m, "GateSteppingAction")
       .def(py::init())
+      .def("RegisterActor", &GateSteppingAction::RegisterActor)
       .def("RegisterAuxiliaryAttribute",
            &GateSteppingAction::RegisterAuxiliaryAttribute);
 }

@@ -26,6 +26,7 @@ public:
   void InitializeUserInfo(py::dict &user_info) override;
   void InitializeCpp() override;
   void BeginOfRunActionMasterThread(int run_id) override;
+  void PreUserTrackingAction(const G4Track *track) override;
   int EndOfRunActionMasterThread(int run_id) override;
   void SteppingAction(G4Step *step) override;
 
@@ -51,6 +52,7 @@ protected:
     double weight = 1.0;
     G4ThreeVector last_position;
     double last_energy = 0.0;
+    int last_step_number = -1;
     bool has_steps = false;
     bool scored = false;
   };
@@ -59,8 +61,10 @@ protected:
 
   void ResetTrackData(threadLocalT &data, const G4Track *track);
   void ScoreTrack(threadLocalT &data);
+  void ScoreTrackAtPosition(threadLocalT &data, const G4ThreeVector &position);
   double GetMaterialDelta(G4Material *material, double energy) const;
   double ComputePhaseIncrement(const G4Step *step) const;
+  bool IsEnteringScoringVolume(const G4Step *step, G4ThreeVector &position) const;
   bool GetImageIndex(const G4ThreeVector &position,
                      Image3DType::IndexType &index) const;
 

@@ -8,6 +8,7 @@
 #ifndef GateSteppingAction_h
 #define GateSteppingAction_h
 
+#include "GateVActor.h"
 #include "GateVAuxiliaryAttribute.h"
 #include <G4UserSteppingAction.hh>
 #include <vector>
@@ -26,11 +27,13 @@ public:
   GateSteppingAction();
   ~GateSteppingAction() override = default;
 
+  void RegisterActor(GateVActor *actor);
   void RegisterAuxiliaryAttribute(GateVAuxiliaryAttribute *attribute);
 
   void UserSteppingAction(const G4Step *step) override;
 
 protected:
+  std::vector<GateVActor *> fSteppingActionActors;
   std::vector<GateVAuxiliaryAttribute *> fSteppingActionAttributes;
 };
 

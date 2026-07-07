@@ -28,6 +28,8 @@ GateXrayPhaseIntegralActor::GateXrayPhaseIntegralActor(py::dict &user_info)
     : GateVActor(user_info, true) {
   fActions.insert("BeginOfRunActionMasterThread");
   fActions.insert("EndOfRunActionMasterThread");
+  fActions.insert("PreUserTrackingAction");
+  fActions.insert("UserSteppingAction");
   fActions.insert("SteppingAction");
 }
 
@@ -70,8 +72,14 @@ void GateXrayPhaseIntegralActor::ResetTrackData(threadLocalT &data,
   data.weight = track->GetWeight();
   data.last_position = track->GetPosition();
   data.last_energy = track->GetKineticEnergy();
+  data.last_step_number = -1;
   data.has_steps = false;
   data.scored = false;
+}
+
+void GateXrayPhaseIntegralActor::PreUserTrackingAction(const G4Track *track) {
+  auto &data = fThreadLocalData.Get();
+  ResetTrackData(data, track);
 }
 
 double GateXrayPhaseIntegralActor::GetMaterialDelta(G4Material *material,
@@ -121,13 +129,14 @@ bool GateXrayPhaseIntegralActor::GetImageIndex(
   return cpp_phase_sum_image->TransformPhysicalPointToIndex(point, index);
 }
 
-void GateXrayPhaseIntegralActor::ScoreTrack(threadLocalT &data) {
+void GateXrayPhaseIntegralActor::ScoreTrackAtPosition(
+    threadLocalT &data, const G4ThreeVector &position) {
   if (!data.has_steps || data.scored) {
     return;
   }
 
   Image3DType::IndexType index;
-  if (!GetImageIndex(data.last_position, index)) {
+  if (!GetImageIndex(position, index)) {
     data.scored = true;
     return;
   }
@@ -145,6 +154,35 @@ void GateXrayPhaseIntegralActor::ScoreTrack(threadLocalT &data) {
   data.scored = true;
 }
 
+void GateXrayPhaseIntegralActor::ScoreTrack(threadLocalT &data) {
+  ScoreTrackAtPosition(data, data.last_position);
+}
+
+bool GateXrayPhaseIntegralActor::IsEnteringScoringVolume(
+    const G4Step *step, G4ThreeVector &position) const {
+  const auto *post = step->GetPostStepPoint();
+  if (post->GetStepStatus() != fGeomBoundary) {
+    return false;
+  }
+
+  const auto *touchable = post->GetTouchable();
+  if (touchable == nullptr || touchable->GetVolume() == nullptr) {
+    return false;
+  }
+
+  const auto *volume = touchable->GetVolume();
+  const auto *logical = volume->GetLogicalVolume();
+  if (logical == nullptr ||
+      (volume->GetName() != fPhysicalVolumeName &&
+       logical->GetName() != fPhysicalVolumeName)) {
+    return false;
+  }
+
+  const auto direction = post->GetMomentumDirection();
+  position = post->GetPosition() + 0.1 * CLHEP::nm * direction;
+  return true;
+}
+
 void GateXrayPhaseIntegralActor::SteppingAction(G4Step *step) {
   auto *track = step->GetTrack();
   if (track->GetParticleDefinition() != G4Gamma::Gamma()) {
@@ -160,6 +198,11 @@ void GateXrayPhaseIntegralActor::SteppingAction(G4Step *step) {
   if (data.track_id != track->GetTrackID() || data.event_id != eventId) {
     ResetTrackData(data, track);
   }
+  const auto stepNumber = track->GetCurrentStepNumber();
+  if (data.last_step_number == stepNumber) {
+    return;
+  }
+  data.last_step_number = stepNumber;
 
   data.phase += ComputePhaseIncrement(step);
   data.weight = track->GetWeight();
@@ -167,9 +210,8 @@ void GateXrayPhaseIntegralActor::SteppingAction(G4Step *step) {
   data.last_energy = step->GetPostStepPoint()->GetKineticEnergy();
   data.has_steps = true;
 
-  const auto status = step->GetPostStepPoint()->GetStepStatus();
-  if (status == fGeomBoundary || status == fWorldBoundary ||
-      track->GetTrackStatus() != fAlive) {
-    ScoreTrack(data);
+  G4ThreeVector scoringPosition;
+  if (IsEnteringScoringVolume(step, scoringPosition)) {
+    ScoreTrackAtPosition(data, scoringPosition);
   }
 }

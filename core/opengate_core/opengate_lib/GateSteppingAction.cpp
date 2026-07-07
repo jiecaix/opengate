@@ -9,6 +9,12 @@
 
 GateSteppingAction::GateSteppingAction() : G4UserSteppingAction() {}
 
+void GateSteppingAction::RegisterActor(GateVActor *actor) {
+  if (actor->HasAction("UserSteppingAction")) {
+    fSteppingActionActors.push_back(actor);
+  }
+}
+
 void GateSteppingAction::RegisterAuxiliaryAttribute(
     GateVAuxiliaryAttribute *attribute) {
   if (attribute->HasAction("SteppingAction")) {
@@ -17,6 +23,10 @@ void GateSteppingAction::RegisterAuxiliaryAttribute(
 }
 
 void GateSteppingAction::UserSteppingAction(const G4Step *step) {
+  auto *mutableStep = const_cast<G4Step *>(step);
+  for (auto actor : fSteppingActionActors) {
+    actor->SteppingAction(mutableStep);
+  }
   for (auto attribute : fSteppingActionAttributes) {
     attribute->SteppingAction(step);
   }

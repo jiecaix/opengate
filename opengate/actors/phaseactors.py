@@ -34,8 +34,11 @@ class XrayPhaseIntegralActor(VoxelDepositActor, g4.GateXrayPhaseIntegralActor):
         g4.GateXrayPhaseIntegralActor.__init__(self, self.user_info)
         self.AddActions(
             {
+                "StartSimulationAction",
                 "BeginOfRunActionMasterThread",
                 "EndOfRunActionMasterThread",
+                "PreUserTrackingAction",
+                "UserSteppingAction",
                 "SteppingAction",
             }
         )
