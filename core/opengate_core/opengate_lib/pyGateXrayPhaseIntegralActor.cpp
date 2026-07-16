@@ -41,6 +41,10 @@ void init_GateXrayPhaseIntegralActor(py::module &m) {
            &GateXrayPhaseIntegralActor::GetPrimaryOnlyFlag)
       .def("SetPrimaryOnlyFlag",
            &GateXrayPhaseIntegralActor::SetPrimaryOnlyFlag)
+      .def("GetUnscatteredOnlyFlag",
+           &GateXrayPhaseIntegralActor::GetUnscatteredOnlyFlag)
+      .def("SetUnscatteredOnlyFlag",
+           &GateXrayPhaseIntegralActor::SetUnscatteredOnlyFlag)
       .def_readwrite("cpp_phase_sum_image",
                      &GateXrayPhaseIntegralActor::cpp_phase_sum_image)
       .def_readwrite("cpp_amplitude_image",
@@ -50,5 +54,9 @@ void init_GateXrayPhaseIntegralActor(py::module &m) {
       .def_readwrite("cpp_real_image",
                      &GateXrayPhaseIntegralActor::cpp_real_image)
       .def_readwrite("cpp_imag_image",
-                     &GateXrayPhaseIntegralActor::cpp_imag_image);
+                     &GateXrayPhaseIntegralActor::cpp_imag_image)
+      .def_readwrite("cpp_incoherent_fluence_image",
+                     &GateXrayPhaseIntegralActor::cpp_incoherent_fluence_image)
+      .def_readwrite("cpp_incoherent_counts_image",
+                     &GateXrayPhaseIntegralActor::cpp_incoherent_counts_image);
 }

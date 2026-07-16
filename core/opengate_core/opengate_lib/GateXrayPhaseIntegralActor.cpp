@@ -19,6 +19,7 @@
 #include <G4Step.hh>
 #include <G4SystemOfUnits.hh>
 #include <G4Track.hh>
+#include <G4VProcess.hh>
 
 #include <cmath>
 
@@ -37,6 +38,7 @@ void GateXrayPhaseIntegralActor::InitializeUserInfo(py::dict &user_info) {
   GateVActor::InitializeUserInfo(user_info);
   fTranslation = DictGetG4ThreeVector(user_info, "translation");
   fPrimaryOnly = DictGetBool(user_info, "primary_only");
+  fUnscatteredOnly = DictGetBool(user_info, "unscattered_only");
 }
 
 void GateXrayPhaseIntegralActor::InitializeCpp() {
@@ -46,6 +48,8 @@ void GateXrayPhaseIntegralActor::InitializeCpp() {
   cpp_counts_image = Image3DType::New();
   cpp_real_image = Image3DType::New();
   cpp_imag_image = Image3DType::New();
+  cpp_incoherent_fluence_image = Image3DType::New();
+  cpp_incoherent_counts_image = Image3DType::New();
 }
 
 void GateXrayPhaseIntegralActor::BeginOfRunActionMasterThread(int) {
@@ -59,6 +63,10 @@ void GateXrayPhaseIntegralActor::BeginOfRunActionMasterThread(int) {
                                    fTranslation);
   AttachImageToVolume<Image3DType>(cpp_imag_image, fPhysicalVolumeName,
                                    fTranslation);
+  AttachImageToVolume<Image3DType>(cpp_incoherent_fluence_image,
+                                   fPhysicalVolumeName, fTranslation);
+  AttachImageToVolume<Image3DType>(cpp_incoherent_counts_image,
+                                   fPhysicalVolumeName, fTranslation);
 }
 
 int GateXrayPhaseIntegralActor::EndOfRunActionMasterThread(int) { return 0; }
@@ -75,6 +83,7 @@ void GateXrayPhaseIntegralActor::ResetTrackData(threadLocalT &data,
   data.last_step_number = -1;
   data.has_steps = false;
   data.scored = false;
+  data.incoherent = track->GetParentID() != 0;
 }
 
 void GateXrayPhaseIntegralActor::PreUserTrackingAction(const G4Track *track) {
@@ -146,6 +155,15 @@ void GateXrayPhaseIntegralActor::ScoreTrackAtPosition(
   const auto imag = data.weight * std::sin(data.phase);
 
   G4AutoLock mutex(&SetXrayPhaseIntegralPixelMutex);
+  if (data.incoherent) {
+    ImageAddValue<Image3DType>(cpp_incoherent_fluence_image, index,
+                               data.weight);
+    ImageAddValue<Image3DType>(cpp_incoherent_counts_image, index, 1.0);
+    if (fUnscatteredOnly) {
+      data.scored = true;
+      return;
+    }
+  }
   ImageAddValue<Image3DType>(cpp_phase_sum_image, index, phaseWeighted);
   ImageAddValue<Image3DType>(cpp_amplitude_image, index, data.weight);
   ImageAddValue<Image3DType>(cpp_counts_image, index, 1.0);
@@ -203,6 +221,16 @@ void GateXrayPhaseIntegralActor::SteppingAction(G4Step *step) {
     return;
   }
   data.last_step_number = stepNumber;
+
+  const auto *process =
+      step->GetPostStepPoint()->GetProcessDefinedStep();
+  if (process != nullptr) {
+    const auto &processName = process->GetProcessName();
+    if (processName == "compt" || processName == "Compton" ||
+        processName == "Rayl" || processName == "RayleighScattering") {
+      data.incoherent = true;
+    }
+  }
 
   data.phase += ComputePhaseIncrement(step);
   data.weight = track->GetWeight();

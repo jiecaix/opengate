@@ -35,6 +35,8 @@ public:
 
   bool GetPrimaryOnlyFlag() const { return fPrimaryOnly; }
   void SetPrimaryOnlyFlag(bool b) { fPrimaryOnly = b; }
+  bool GetUnscatteredOnlyFlag() const { return fUnscatteredOnly; }
+  void SetUnscatteredOnlyFlag(bool b) { fUnscatteredOnly = b; }
 
   typedef itk::Image<double, 3> Image3DType;
 
@@ -43,6 +45,8 @@ public:
   Image3DType::Pointer cpp_counts_image;
   Image3DType::Pointer cpp_real_image;
   Image3DType::Pointer cpp_imag_image;
+  Image3DType::Pointer cpp_incoherent_fluence_image;
+  Image3DType::Pointer cpp_incoherent_counts_image;
 
 protected:
   struct threadLocalT {
@@ -55,6 +59,7 @@ protected:
     int last_step_number = -1;
     bool has_steps = false;
     bool scored = false;
+    bool incoherent = false;
   };
 
   G4Cache<threadLocalT> fThreadLocalData;
@@ -71,6 +76,7 @@ protected:
   std::string fPhysicalVolumeName;
   G4ThreeVector fTranslation;
   bool fPrimaryOnly = true;
+  bool fUnscatteredOnly = true;
 };
 
 #endif // GateXrayPhaseIntegralActor_h

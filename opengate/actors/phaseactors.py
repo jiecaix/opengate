@@ -11,9 +11,19 @@ class XrayPhaseIntegralActor(VoxelDepositActor, g4.GateXrayPhaseIntegralActor):
 
     user_info_defaults = {
         "primary_only": (
-            True,
+            False,
             {
                 "doc": "If True, only primary photons contribute to the phase integral.",
+            },
+        ),
+        "unscattered_only": (
+            True,
+            {
+                "doc": (
+                    "If True, only photons without a Rayleigh or Compton history "
+                    "contribute to the coherent complex field. Other photons are "
+                    "recorded in the incoherent outputs."
+                ),
             },
         ),
     }
@@ -24,6 +34,8 @@ class XrayPhaseIntegralActor(VoxelDepositActor, g4.GateXrayPhaseIntegralActor):
         "counts": {"actor_output_class": ActorOutputSingleImage},
         "real": {"actor_output_class": ActorOutputSingleImage},
         "imag": {"actor_output_class": ActorOutputSingleImage},
+        "incoherent_fluence": {"actor_output_class": ActorOutputSingleImage},
+        "incoherent_counts": {"actor_output_class": ActorOutputSingleImage},
     }
 
     def __init__(self, *args, **kwargs):
@@ -48,6 +60,7 @@ class XrayPhaseIntegralActor(VoxelDepositActor, g4.GateXrayPhaseIntegralActor):
         VoxelDepositActor.initialize(self)
         self.InitializeUserInfo(self.user_info)
         self.SetPrimaryOnlyFlag(self.primary_only)
+        self.SetUnscatteredOnlyFlag(self.unscattered_only)
         self.InitializeCpp()
 
     def BeginOfRunActionMasterThread(self, run_index):
@@ -56,11 +69,19 @@ class XrayPhaseIntegralActor(VoxelDepositActor, g4.GateXrayPhaseIntegralActor):
         self.prepare_output_for_run("counts", run_index)
         self.prepare_output_for_run("real", run_index)
         self.prepare_output_for_run("imag", run_index)
+        self.prepare_output_for_run("incoherent_fluence", run_index)
+        self.prepare_output_for_run("incoherent_counts", run_index)
         self.push_to_cpp_image("phase_sum", run_index, self.cpp_phase_sum_image)
         self.push_to_cpp_image("amplitude", run_index, self.cpp_amplitude_image)
         self.push_to_cpp_image("counts", run_index, self.cpp_counts_image)
         self.push_to_cpp_image("real", run_index, self.cpp_real_image)
         self.push_to_cpp_image("imag", run_index, self.cpp_imag_image)
+        self.push_to_cpp_image(
+            "incoherent_fluence", run_index, self.cpp_incoherent_fluence_image
+        )
+        self.push_to_cpp_image(
+            "incoherent_counts", run_index, self.cpp_incoherent_counts_image
+        )
         g4.GateXrayPhaseIntegralActor.BeginOfRunActionMasterThread(self, run_index)
 
     def EndOfRunActionMasterThread(self, run_index):
@@ -69,7 +90,16 @@ class XrayPhaseIntegralActor(VoxelDepositActor, g4.GateXrayPhaseIntegralActor):
         self.fetch_from_cpp_image("counts", run_index, self.cpp_counts_image)
         self.fetch_from_cpp_image("real", run_index, self.cpp_real_image)
         self.fetch_from_cpp_image("imag", run_index, self.cpp_imag_image)
-        for output_name in ("phase_sum", "amplitude", "counts", "real", "imag"):
+        self.fetch_from_cpp_image(
+            "incoherent_fluence", run_index, self.cpp_incoherent_fluence_image
+        )
+        self.fetch_from_cpp_image(
+            "incoherent_counts", run_index, self.cpp_incoherent_counts_image
+        )
+        for output_name in (
+            "phase_sum", "amplitude", "counts", "real", "imag",
+            "incoherent_fluence", "incoherent_counts",
+        ):
             self._update_output_coordinate_system(output_name, run_index)
             self.user_output[output_name].store_meta_data(run_index)
         VoxelDepositActor.EndOfRunActionMasterThread(self, run_index)
