@@ -125,7 +125,8 @@ double GateXrayPhaseIntegralActor::ComputePhaseIncrement(
     return 0.0;
   }
 
-  const auto waveNumber = CLHEP::twopi * energy / (CLHEP::hbar_Planck * CLHEP::c_light);
+  // k = 2*pi/lambda = E/(hbar*c); hbar already contains the 1/(2*pi) factor.
+  const auto waveNumber = energy / (CLHEP::hbar_Planck * CLHEP::c_light);
   return -waveNumber * delta * step->GetStepLength();
 }
 
